@@ -5,10 +5,11 @@ import auxilary as aux
 #Class GameProcessor
 class GameProcessor:
 
-    def __init__(self, Inx, InY, trainingsize):
+    def __init__(self, Inx, InY, trainingsize, learningrate):
         self.Inx = Inx
         self.Iny = InY
         self.trainingsize = trainingsize
+        self.learnrate = learningrate
 
     ###define the model###
     def game_model(self, n_actions):
@@ -47,7 +48,7 @@ class GameProcessor:
         merged_output = keras.layers.multiply([output, actions_input])
 
         self.model = keras.models.Model([frame_input, actions_input], output=merged_output)
-        optimizer = keras.optimizers.RMSprop(lr=0.01, rho=0.95, epsilon=0.01)
+        optimizer = keras.optimizers.RMSprop(self.learnrate, rho=0.95, epsilon=0.01)
 
         self.model.compile(optimizer, loss='mse')
     ###~define the model###

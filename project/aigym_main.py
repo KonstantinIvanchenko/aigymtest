@@ -7,7 +7,10 @@ import random
 from lib import auxilary as aux
 from lib import buffer as buf
 from lib import gameproc as gmp
+from lib import myargparser as marg
 
+#number of games to play
+gl_n_games = 10000
 #globalnumber of iterations
 numberOfIterations = 1
 #completed game flag
@@ -21,6 +24,8 @@ gl_batch_size_normal = 8
 gl_reward = 0
 #gamma
 gl_gamma = 0.99
+#learning rate
+gl_learning_rate = 0.01
 
 #if no negative rewards expected use following at gl_is_donw=True
 #TODO: consider the filter for negative reward
@@ -106,8 +111,15 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
 
     return reward
 
+#parser
+arg_parser = marg.InputArguments()
+args = arg_parser.parser.parse_args()
 
-
+#check inputs
+if (args.lr < 0.05 and args.lr > 0.00025):
+    gl_learning_rate = args.lr
+if (args.ngames < 100000 and args.ngames > 1):
+    gl_n_games = args.ngames
 
 
 #processing start
@@ -131,7 +143,7 @@ print('Initialize input action vector size..' + str(n_actions))
 
 #initialize the model
 print('Initialize input data sizes..' + str(np.size(frame)))
-gp = gmp.GameProcessor(np.size(frame, axis=0), np.size(frame, axis=1), 4)
+gp = gmp.GameProcessor(np.size(frame, axis=0), np.size(frame, axis=1), 4, gl_learning_rate)
 print('Initialize game model..')
 gp.game_model(n_actions)#16 actions
 
@@ -145,7 +157,7 @@ ring_buffer = buf.RingBuffer(32^5)
 
 print('Iterating the model..')
 #while not gl_is_done:
-while not n_games_played == 1000:
+while not n_games_played == gl_n_games:
     print('Iteration '+str(numberOfIterations))
     game_reward_state = model_iteration(env,gp, state_frames, ring_buffer, n_actions)
     print('Game reward '+str(game_reward_state))
