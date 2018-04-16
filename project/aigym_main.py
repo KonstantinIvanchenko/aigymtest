@@ -58,7 +58,7 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
 
     #resize the image to predefined dimensions of the network input
     another_frame = aux.grayscale_img(another_frame)
-    another_frame = aux.downsample_img(another_frame)
+    #another_frame = aux.downsample_img(another_frame)
 
     #add new frame to the last trainingElemenet which is a current state
     trainingElement.training_set_new(another_frame)
@@ -132,7 +132,9 @@ env.render()
 
 #grayscale the image
 frame = aux.grayscale_img(frame)
-frame = aux.downsample_img(frame)
+#frame = aux.downsample_img(frame)
+
+
 #Show image with a 'frame' array
 #imgplot = plt.imshow(frame)
 #plt.show()

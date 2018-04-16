@@ -84,7 +84,7 @@ class GameProcessor:
         #temp = np.take(start_states_buffer, np.size(start_states_buffer,axis=0), axis=1)
         tempsize = np.size(start_states_buffer,axis=0)
         #NEW
-        start_states_buffer = np.reshape(start_states_buffer, (tempsize, 105, 80))
+        start_states_buffer = np.reshape(start_states_buffer, (tempsize, self.Inx, self.Iny))
         padded = [np.expand_dims(start_states_buffer, axis=0), actions_vect]
 
 
