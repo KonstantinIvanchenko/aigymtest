@@ -145,7 +145,10 @@ print('Initialize input action vector size..' + str(n_actions))
 
 #initialize the model
 print('Initialize input data sizes..' + str(np.size(frame)))
-gp = gmp.GameProcessor(np.size(frame, axis=0), np.size(frame, axis=1), 4, gl_learning_rate)
+gp = gmp.GameProcessor(np.size(frame, axis=0),
+                       np.size(frame, axis=1),
+                       4, gl_learning_rate,
+                       'huber_loss')#can use 'mse' as loss function
 print('Initialize game model..')
 gp.game_model(n_actions)#16 actions
 

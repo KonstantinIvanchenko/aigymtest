@@ -5,11 +5,25 @@ import auxilary as aux
 #Class GameProcessor
 class GameProcessor:
 
-    def __init__(self, Inx, InY, trainingsize, learningrate):
+    def __init__(self, Inx, InY, trainingsize, learningrate, lossfunction):
         self.Inx = Inx
         self.Iny = InY
         self.trainingsize = trainingsize
         self.learnrate = learningrate
+        if(lossfunction == 'huber_loss'):
+            self.loss_function = self.huber_loss
+        elif(lossfunction == 'mse'):
+            self.loss_function = 'mse'
+
+    #loss function
+    def huber_loss(self, a, b, in_keras=True):
+        error = a - b
+        quadratic_term = error*error  / 2
+        linear_term = abs(error) - 1/2
+        use_linear_term = (abs(error) > 1.0)
+        if in_keras:
+            use_linear_term = keras.backend.cast(use_linear_term, 'float32')
+        return use_linear_term*linear_term + (1-use_linear_term)*quadratic_term
 
     ###define the model###
     def game_model(self, n_actions):
@@ -50,7 +64,7 @@ class GameProcessor:
         self.model = keras.models.Model([frame_input, actions_input], output=merged_output)
         optimizer = keras.optimizers.RMSprop(self.learnrate, rho=0.95, epsilon=0.01)
 
-        self.model.compile(optimizer, loss='mse')
+        self.model.compile(optimizer, loss=self.loss_function)
     ###~define the model###
 
     #TBD: get the the best action for current state
@@ -95,3 +109,4 @@ class GameProcessor:
         #fit model with the
         #padded
         self.model.fit(padded, target_action_vector, nb_epoch=1, batch_size=32, verbose=0)
+
