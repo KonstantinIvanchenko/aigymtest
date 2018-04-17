@@ -43,6 +43,7 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
     global action_sample
 
     do_fit_and_sample = False
+    save_model_flag = False
 
     #initialize action vector randomly once at start-up
     if (numberOfIterations < 4):
@@ -58,7 +59,7 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
 
     #resize the image to predefined dimensions of the network input
     another_frame = aux.grayscale_img(another_frame)
-    #another_frame = aux.downsample_img(another_frame)
+    another_frame = aux.downsample_img(another_frame)
 
     #add new frame to the last trainingElemenet which is a current state
     trainingElement.training_set_new(another_frame)
@@ -89,6 +90,8 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
                 do_fit_and_sample = True
                 batch_size = gl_batch_size_normal
     '''
+    if (numberOfIterations % 10000 == 0):
+        save_model_flag = True
 
     if (do_fit_and_sample == True):
         np_state_array = np.array(trainingElement.get_training_set_wUpdate())#get the temporary array of elements as numpy array. Flush the initial trainingElemnt array with wUpdate
@@ -97,17 +100,27 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
         np_state_array_padded = [np.expand_dims(np_state_array, axis=0), np.expand_dims(np.ones(n_actions),axis=0)]
 
         #pad the elements to get (None, x, y, z) and (None, k) format
-        action_vect = model.max_action_vect_on_model( np_state_array_padded )
+        #action_vect = model.max_action_vect_on_model( np_state_array_padded )
+#CHANGE
+        action_vect = model.max_action_rawvalue_on_model(np_state_array_padded)
 
         #fit_batch(gp.model, rewards, buffer, np_state_array_padded , action_vect)
         #fit_batch(self, rewards, gamma, start_states_buffer, next_state_formatted, actions_vect, is_game_over)
         '''
         gp.fit_batch(gl_reward, gl_gamma, buffer.get_seq_of_items(numberOfIterations-batch_size, batch_size), np_state_array_padded, action_vect, gl_is_done)
         '''
+
+
         gp.fit_batch(gl_reward, gl_gamma, buffer.getitem(numberOfIterations-1),
-                     np_state_array_padded, action_vect, gl_is_done)
+                     np_state_array_padded, action_vect, gl_is_done, save_model=save_model_flag)
+
+#CHANGE
+        action_vect = aux.set_max_action_to_one(action_vect)
 
         action_sample = np.argmax(action_vect,axis=1)#get index of action
+
+    #if (numberOfIterations % 10000 == 0):
+     #   gp.clone_network()
 
     return reward
 
@@ -116,11 +129,14 @@ arg_parser = marg.InputArguments()
 args = arg_parser.parser.parse_args()
 
 #check inputs
-if (args.lr < 0.05 and args.lr > 0.00025):
+if (args.lr <= 0.05 and args.lr >= 0.00025):
     gl_learning_rate = args.lr
-if (args.ngames < 100000 and args.ngames > 1):
+if (args.ngames <= 1000000 and args.ngames > 1):
     gl_n_games = args.ngames
-
+if args.load == True:
+    arg_loadmodel = True
+else:
+    arg_loadmodel = False
 
 #processing start
 #env = gym.make('BreakoutDeterministic-v0')
@@ -132,7 +148,7 @@ env.render()
 
 #grayscale the image
 frame = aux.grayscale_img(frame)
-#frame = aux.downsample_img(frame)
+frame = aux.downsample_img(frame)
 
 
 #Show image with a 'frame' array
@@ -148,7 +164,8 @@ print('Initialize input data sizes..' + str(np.size(frame)))
 gp = gmp.GameProcessor(np.size(frame, axis=0),
                        np.size(frame, axis=1),
                        4, gl_learning_rate,
-                       'huber_loss')#can use 'mse' as loss function
+                       'huber_loss',#can use 'mse' as loss function
+                       arg_loadmodel)
 print('Initialize game model..')
 gp.game_model(n_actions)#16 actions
 
