@@ -21,9 +21,14 @@ class GameProcessor:
             self.loss_function = 'mse'
 
         if loadmodel:
-            if os.path.isfile('/current_model'):
+            if os.path.isfile('current_network'):
                 print ('Network file found')
                 self.model = keras.models.load_model('current_network')
+
+                self.model.loss = self.loss_function
+                loaded_optimizer = keras.optimizers.RMSprop(self.learnrate, rho=0.95, epsilon=0.01)
+                self.model.compile(loaded_optimizer, loss=self.loss_function)
+
                 self.model_loaded = True
             else:
                 print('Network file not found')

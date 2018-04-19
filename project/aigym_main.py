@@ -68,7 +68,7 @@ def model_iteration(env, model, trainingElement, buffer, n_actions):
     buffer.append(trainingElement.training_set)
 
     #get epsilon
-    epsi = aux.epsilon_get_linear(numberOfIterations, 100000)
+    epsi = aux.epsilon_get_linear(numberOfIterations, 500000)
 
 
     if (random.random() < epsi and numberOfIterations % 4 != 0 ):#get a new random action from time to time
